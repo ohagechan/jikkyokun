@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>実況君_Ver3.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            display: flex;
+            font-family: sans-serif;
+            gap: 10px;
+            padding: 10px;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .input-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 450px;
+            flex-shrink: 0;
+            max-height: 85%;
+        }
+
+        #inputAreaTop {
+            width: 450px;
+            height: 350px;
+        }
+
+        #inputArea {
+            width: 450px;
+            height: 600px;
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            border: 1px solid #aaa;
+            padding: 1px;
+            gap: 1px;
+            width: fit-content;
+            flex-shrink: 0;
+        }
+
+        .section h4 {
+            margin: 0;
+            width: 60px;
+            white-space: nowrap;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .buttons {
+            display: grid;
+            grid-auto-flow: column;
+            grid-template-rows: repeat(20, auto);
+            gap: 3px;
+            width: fit-content;
+        }
+
+        button {
+            width: 90px;
+            min-width: 90px;
+            font-size: 12px;
+            padding: 2px;
+        }
+
+        .button-column {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 70%;
+            height: 100vh;
+            overflow: auto;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: row;
+            gap: 1px;
+            overflow-x: auto;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 入力欄を縦に2つ並べる -->
+    <div class="input-column">
+        <textarea id="inputAreaTop" onfocus="setActiveTextarea(this)" placeholder="上部入力欄">1年生練習試合1試合目
+【福生vs福生】
+2025.5.6 福東グラウンド
+　　　　１２３４５６７　計
+【福生】
+【福生】
+    
+スターティングメンバー
+1番
+2番
+3番
+4番
+5番
+6番
+7番
+8番
+9番
+   
+試合開始時刻 時分</textarea>
+        <textarea id="inputArea" onfocus="setActiveTextarea(this)" placeholder="実況入力欄">◆1回表《福生》
+投球数 球 計 球
+◆1回裏《福生》
+投球数 球 計 球
+◆2回表《福生》
+投球数 球 計 球
+◆2回裏《福生》
+投球数 球 計 球
+◆3回表《福生》
+投球数 球 計 球
+◆3回裏《福生》
+投球数 球 計 球
+◆4回表《福生》
+投球数 球 計 球
+◆4回裏《福生》
+投球数 球 計 球
+◆5回表《福生》
+投球数 球 計 球
+◆5回裏《福生》
+投球数 球 計 球
+◆6回表《福生》
+投球数 球 計 球
+◆6回裏《福生》
+投球数 球 計 球
+◆7回表《福生》
+投球数 球 計 球
+◆7回裏《福生》
+投球数 球 計 球
+   
+ゲームセット 試合終了時刻 時分 【記録員 池田】</textarea>
+
+        <!-- 保存ボタン -->
+        <button onclick="downloadText()">入力内容保存</button>
+    </div>
+
+    <!-- 右側：ボタンとその下の入力欄 -->
+    <div class="button-column">
+        <div class="panel" id="buttonPanel"></div>
+        <div style="margin-bottom: 5px;">
+            <button onclick="switchPlayerTab('選手1')">選手1</button>
+            <button onclick="switchPlayerTab('選手2')">選手2</button>
+            <button onclick="switchPlayerTab('選手3')">選手3</button>
+        </div>
+    </div>
+
+    <!-- 埋め込みJSONデータ -->
+    <script id="buttonData" type="application/json">
+    {
+      "守備": ["　→", "　投", "　捕", "　一", "　二", "　三", "　遊", "　左", "　中", "　右"],
+      "アウト": ["ゴロ", "飛", "邪飛", "併殺", "封殺", "刺殺", "帰塁死", "挟殺死", "　牽制死", "　盗塁死"],
+      "打球方向": ["　左線", "　左前", "　左越", "　左中間", "　中前", "　中越", "　右中間", "　右前", "　右越", "　右線"],
+      "ヒット": ["安打", "二塁打", "三塁打", "本塁打", "犠打", "スリーバント", "バントヒット", "犠飛"],
+      "基本": ["　空三振", "　見三振", "　四球", "　死球", "　振逃", "暴投", "　盗塁", "　重盗", "　捕逸", "　疑投", "失", "送球失", "野選"],
+      "その他": ["　送球間進塁", "　送球間憤死", "　守備妨害", "　走塁死", "　打撃妨害"],
+      "死": ["　0死", "　1死", "　2死", "　3死"],
+      "塁": ["本塁", "0塁", "1塁", "2塁", "3塁", "1,2塁", "1,3塁", "2,3塁", "満塁"],
+      "打順番号": ["1番\n2番\n3番\n4番\n5番\n6番\n7番\n8番\n9番"],
+      "選手1": ["　青木", "　青山", "　赤石", "　阿部", "　五十嵐", "　池田", "　石崎", "　井上", "　内野", "　江川",
+        "　大貫", "　小笠原", "　小川", "　沖", "　荻巣", "　片倉", "　上遠野", "　加藤", "　桐生", "　小山",
+        "　佐藤", "　菅野", "　鈴木(大)", "　鈴木(隆)", "　鈴木(琉)", "　高塚", "　滝口", "　武市", "　筒井", "　内生",
+        "　永瀬", "　中田", "　難波", "　長谷井", "　花田", "　平井", "　平川", "　ヘイニー", "　松木", "　松田",
+        "　溝口", "　峯岸(るか)", "　峯岸(るな)", "　ムンフバト", "　山﨑", "　山下", "　米田", "　米山"],
+      "選手2": ["　井上", "　今井", "　大澤", "　沖倉", "　小野", "　紙谷", "　齋藤", "　榊原", "　佐々木(爽)",
+        "　佐々木(大)", "　指田", "　新発田", "　鈴木", "　髙澤", "　髙橋", "　椿谷", "　傳田", "　西間木", "　福田(一)",
+        "　福田(翔)", "　福田(柊)", "　穂寄", "　武藤", "　森", "　山本", "　吉川", "　吉澤", "　渡辺", "　田代",
+        "　藤原", "　和泉", "　野村"],
+      "選手3": ["　青木", "　浅川", "　伊藤(快)", "　伊藤(佑)", "　大出", "　大貫", "　大野", "　大平", "　小椋",
+        "　香川", "　神田", "　木本", "　佐々木", "　佐野", "　篠崎", "　鈴木", "　高岡", "　高根沢", "　髙橋", "　竹内",
+        "　武田", "　富井", "　中川", "　長島", "　中田", "　中野", "　中村", "　根岸", "　旗手", "　平沼", "　平野",
+        "　三澤", "　宮﨑", "　村松", "　安田", "　安室", "　柳澤", "　山崎", "　山本", "　渡部"],
+    "得点": ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳",
+      "❶", "❷", "❸", "❹", "❺", "❻", "❼", "❽", "❾", "❿", "⓫", "⓬", "⓭", "⓮", "⓯", "⓰", "⓱", "⓲", "⓳", "⓴"]
+    }
+  </script>
+
+    <!-- スクリプト -->
+    <script>
+        let activeTextarea = null;
+
+        function setActiveTextarea(textarea) {
+            activeTextarea = textarea;
+        }
+
+        function insertText(text) {
+            const textarea = activeTextarea;
+            if (!textarea) return;
+
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const before = textarea.value.substring(0, start);
+            const after = textarea.value.substring(end);
+            textarea.value = before + text + after;
+            textarea.selectionStart = textarea.selectionEnd = start + text.length;
+            textarea.focus();
+        }
+
+        function loadButtonsFromJSON() {
+            const jsonText = document.getElementById('buttonData').textContent;
+            const data = JSON.parse(jsonText);
+            const panel = document.getElementById('buttonPanel');
+
+            for (const [category, labels] of Object.entries(data)) {
+                const section = document.createElement('div');
+                section.className = 'section';
+
+                const title = document.createElement('h4');
+                title.textContent = category;
+                section.appendChild(title);
+
+                const buttonGroup = document.createElement('div');
+                buttonGroup.className = 'buttons';
+
+                labels.forEach(label => {
+                    const button = document.createElement('button');
+                    button.textContent = label;
+                    button.onclick = () => insertText(label);
+                    buttonGroup.appendChild(button);
+                });
+
+                section.appendChild(buttonGroup);
+                if (category === '選手1' || category === '選手2' || category === '選手3') {
+                    section.dataset.player = category;
+                    section.style.display = (category === '選手1') ? 'flex' : 'none';
+                }
+
+                panel.appendChild(section);
+            }
+        }
+
+        function switchPlayerTab(tabName) {
+            const allSections = document.querySelectorAll('.section[data-player]');
+            allSections.forEach(section => {
+                section.style.display = (section.dataset.player === tabName) ? 'flex' : 'none';
+            });
+        }
+
+
+        function downloadText() {
+            const text =
+                (document.getElementById('inputAreaTop')?.value || '') + '\n\n' +
+                (document.getElementById('inputArea')?.value || '');
+
+            const blob = new Blob([text], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '実況テキスト.txt';
+            link.click();
+        }
+
+
+        loadButtonsFromJSON();
+    </script>
+</body>
+
+</html>

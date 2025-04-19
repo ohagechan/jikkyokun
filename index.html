@@ -146,7 +146,10 @@
 ゲームセット 試合終了時刻 時分 【記録員 池田】</textarea>
 
         <!-- 保存ボタン -->
-        <button onclick="downloadText()">入力内容保存</button>
+        <div style="margin-bottom: 5px;">
+            <button onclick="downloadText()">入力内容保存</button>
+            <button onclick="copyToClipboard()">コピー</button>
+        </div>
     </div>
 
     <!-- 右側：ボタンとその下の入力欄 -->
@@ -256,13 +259,24 @@
                 (document.getElementById('inputAreaTop')?.value || '') + '\n\n' +
                 (document.getElementById('inputArea')?.value || '');
 
-            const blob = new Blob([text], { type: 'text/plain' });
+            
+            const sjisArray = new TextEncoder('shift-jis').encode(text);
+            const blob = new Blob([sjisArray], { type: 'text/plain' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = '実況テキスト.txt';
             link.click();
         }
 
+        function copyToClipboard() {
+            const textTop = document.getElementById('inputAreaTop')?.value || '';
+            const textMain = document.getElementById('inputArea')?.value || '';
+            const combinedText = textTop + '\n\n' + textMain;
+
+            navigator.clipboard.writeText(combinedText)
+                .then(() => alert('クリップボードにコピーしました'))
+                .catch(err => alert('コピーに失敗しました: ' + err));
+        }
 
         loadButtonsFromJSON();
     </script>

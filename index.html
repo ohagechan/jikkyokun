@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>実況君_Ver3.0</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.jsdelivr.net/npm/encoding-japanese/encoding.min.js"></script>
     <style>
         body {
             display: flex;
@@ -20,18 +21,18 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            width: 450px;
+            width: 430px;
             flex-shrink: 0;
             max-height: 85%;
         }
 
         #inputAreaTop {
-            width: 450px;
+            width: 430px;
             height: 350px;
         }
 
         #inputArea {
-            width: 450px;
+            width: 430px;
             height: 600px;
         }
 
@@ -255,19 +256,25 @@
 
 
         function downloadText() {
-            const text =
-                (document.getElementById('inputAreaTop')?.value || '') + '\n\n' +
-                (document.getElementById('inputArea')?.value || '');
+            const textTop = document.getElementById('inputAreaTop')?.value || '';
+            const textMain = document.getElementById('inputArea')?.value || '';
+            const fullText = textTop + '\n\n' + textMain;
 
-            
-            const sjisArray = new TextEncoder('shift-jis').encode(text);
-            const blob = new Blob([sjisArray], { type: 'text/plain' });
+            // Unicode文字列を配列に変換して、Shift_JISへエンコード
+            const unicodeArray = Encoding.stringToCode(fullText);
+            const sjisArray = Encoding.convert(unicodeArray, {
+                to: 'SJIS',
+                from: 'UNICODE'
+            });
+
+            // Uint8ArrayとしてBlob化し、ファイルダウンロード
+            const uint8Array = new Uint8Array(sjisArray);
+            const blob = new Blob([uint8Array], { type: 'text/plain' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = '実況テキスト.txt';
             link.click();
         }
-
         function copyToClipboard() {
             const textTop = document.getElementById('inputAreaTop')?.value || '';
             const textMain = document.getElementById('inputArea')?.value || '';
